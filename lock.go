@@ -784,3 +784,19 @@ func isDup(err error) bool {
 	}
 	return false
 }
+
+// Gc removes all lock entries in the collection that have expired
+// Specifically this removes lock entries where exclusive.lockId is nil AND shared.count is 0
+func (c *Client) Gc(ctx context.Context) error {
+	// Get all empty locks and remove
+	selector := bson.M{
+		"exclusive.lockId": nil,
+		"shared.count":     0,
+	}
+
+	_, err := c.collection.DeleteMany(ctx, selector)
+	if err != nil {
+		return err
+	}
+	return nil
+}
